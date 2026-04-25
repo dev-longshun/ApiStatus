@@ -731,11 +731,11 @@ export function DashboardView({ initialData }: DashboardViewProps) {
       <header className="relative z-10 mb-8 flex flex-col justify-between gap-6 sm:mb-12 sm:gap-8 lg:flex-row lg:items-end">
         <div className="space-y-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background sm:h-8 sm:w-8">
-              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg sm:h-8 sm:w-8">
+              <img src="/favicon.png" alt="RelayAI" className="h-full w-full object-cover" />
             </div>
             <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground sm:text-sm">
-              System Status
+              RelayAI Status
             </span>
             <div className="h-3 w-[1px] bg-border/60 sm:h-4" />
             <Link
