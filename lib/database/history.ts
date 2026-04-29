@@ -70,16 +70,43 @@ class SnapshotStore {
 
     const supabase = createAdminClient();
     const limitPerConfig = options?.limitPerConfig ?? MAX_POINTS_PER_PROVIDER;
-    const maxRows = normalizedIds
-      ? normalizedIds.length * limitPerConfig
-      : 10000;
+
+    // Supabase 默认最多返回 1000 行，按批次拆分避免截断
+    const SUPABASE_MAX_ROWS = 1000;
+    const batchSize = Math.max(1, Math.floor(SUPABASE_MAX_ROWS / limitPerConfig));
+
+    if (normalizedIds && normalizedIds.length > batchSize) {
+      const allRows: RpcHistoryRow[] = [];
+      for (let i = 0; i < normalizedIds.length; i += batchSize) {
+        const batch = normalizedIds.slice(i, i + batchSize);
+        const { data, error } = await supabase.rpc(
+          RPC_RECENT_HISTORY,
+          {
+            limit_per_config: limitPerConfig,
+            target_config_ids: batch,
+          }
+        );
+        if (error) {
+          logError("获取历史快照失败（批次）", error);
+          if (isMissingFunctionError(error)) {
+            return fallbackFetchSnapshot(supabase, normalizedIds);
+          }
+          continue;
+        }
+        if (data) {
+          allRows.push(...(data as RpcHistoryRow[]));
+        }
+      }
+      return mapRowsToSnapshot(allRows, limitPerConfig);
+    }
+
     const { data, error } = await supabase.rpc(
       RPC_RECENT_HISTORY,
       {
         limit_per_config: limitPerConfig,
         target_config_ids: normalizedIds,
       }
-    ).limit(maxRows);
+    );
 
     if (error) {
       logError("获取历史快照失败", error);
