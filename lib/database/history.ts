@@ -70,13 +70,16 @@ class SnapshotStore {
 
     const supabase = createAdminClient();
     const limitPerConfig = options?.limitPerConfig ?? MAX_POINTS_PER_PROVIDER;
+    const maxRows = normalizedIds
+      ? normalizedIds.length * limitPerConfig
+      : 10000;
     const { data, error } = await supabase.rpc(
       RPC_RECENT_HISTORY,
       {
         limit_per_config: limitPerConfig,
         target_config_ids: normalizedIds,
       }
-    );
+    ).limit(maxRows);
 
     if (error) {
       logError("获取历史快照失败", error);
